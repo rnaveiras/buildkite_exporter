@@ -9,6 +9,7 @@ import (
 	"gopkg.in/buildkite/go-buildkite.v2/buildkite"
 )
 
+// Exporter collects Buildkite metrics. It implements prometheus.Collector.
 type Exporter struct {
 	mutex        sync.RWMutex
 	client       *buildkite.Client
@@ -21,6 +22,7 @@ type Exporter struct {
 	up           prometheus.Gauge
 }
 
+// NewExporter returns a new BuildKite exporter
 func NewExporter(timeout time.Duration) (*Exporter, error) {
 	config, err := buildkite.NewTokenConfig(*buildkiteToken, false)
 
@@ -86,6 +88,7 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	e.builds.Describe(ch)
 }
 
+// Collect implements prometheus.Collector.
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.mutex.Lock() // To protect metrics from concurrent collects.
 	defer e.mutex.Unlock()
@@ -158,8 +161,8 @@ func (e *Exporter) scrapeAgents() error {
 	}
 	defer response.Body.Close()
 
-	num_agents := len(agents)
-	e.agents.Set(float64(num_agents))
+	numAgents := len(agents)
+	e.agents.Set(float64(numAgents))
 
 	return nil
 }
